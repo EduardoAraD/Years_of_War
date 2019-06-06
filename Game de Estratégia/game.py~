@@ -1,0 +1,312 @@
+import pygame
+from Player import *
+from funcoesComplexas import *
+from interface import *
+
+def main():
+    pygame.init()
+    tela = pygame.display.set_mode([1280,720])
+    pygame.display.set_caption("MedievalGame")
+    relogio = pygame.time.Clock()
+
+    #criando a superficie do Campo
+    chao_sup = pygame.Surface((1000,600))
+    barraVida_sup = pygame.Surface((252,22))
+    vidaBranca_sup = pygame.Surface((250,20))
+
+    #Imagens
+    chao_image = pygame.image.load("Imagens/chao.png").convert_alpha()
+    #minichao_image = pygame.image.load("Imagens/miniChao.png").convert_alpha()
+    arvore1_image = pygame.image.load("Imagens/Arvore1.png").convert_alpha()
+    arvore2_image = pygame.image.load("Imagens/Arvore2.png").convert_alpha()
+    arvore3_image = pygame.image.load("Imagens/Arvore3.png").convert_alpha()
+    castelo1_image = pygame.image.load("Imagens/Castelo1.png").convert_alpha()
+    castelo2_image = pygame.image.load("Imagens/Castelo2.png").convert_alpha()
+    castelo3_image = pygame.image.load("Imagens/Castelo3.png").convert_alpha()
+    castelo4_image = pygame.image.load("Imagens/Castelo4.png").convert_alpha()
+    casteloDestroy_image = pygame.image.load("Imagens/CasteloDestroy.png").convert_alpha()
+    testeArvore_img = pygame.image.load("Sem título.png").convert_alpha()
+    sptArvore = [(0,0,20,20),(20,0,20,20),(40,0,20,20),(60,0,20,20),(80,0,20,20)]
+    #criando as Cartas
+    guerreiro_image = pygame.image.load("Imagens/Guerreiro.png").convert_alpha()
+    testeCard = pygame.Surface((80,100))
+
+    #posicionando a imagem a superficie 
+    chao_sup.blit(chao_image,(0,0))
+
+    #cores
+    cor_vermelho = (255,0,0)
+    cor_verde = (0,255,0)
+    cor_preto = (0,0,0)
+    cor_azul = (0,0,255)
+    
+    quadrado = pygame.Surface((20,20))
+    quadrado.set_alpha(50)
+    quadrado.fill((cor_azul))
+
+    def mostrarMovimento(pos_x,pos_y,move):
+        for x in range(pos_x-move[0],pos_x+move[0]+1):
+            for y in range(pos_y-move[1],pos_y+move[1]+1):
+                if x >= 0 and x < 50:
+                    if y >= 0 and y < 30:
+                        chao_sup.blit( quadrado, [x*20, y*20])
+
+    #criando Fontes e palavras
+    font_padrao = pygame.font.init() # iniciando uma fonte
+    fonte_grande = pygame.font.SysFont(font_padrao, 60)    #tamanho da letra
+    fonte_media = pygame.font.SysFont(font_padrao, 30)
+    fonte_pequena = pygame.font.SysFont(font_padrao, 25)
+    text_NomeJogo = fonte_grande.render("War of Yers", 1, cor_vermelho)
+    text_Player = [
+                    fonte_grande.render("Player 1", 1, cor_preto),
+                    fonte_grande.render("Player 2", 1, cor_preto),
+                    fonte_grande.render("Player 3", 1, cor_preto),
+                    fonte_grande.render("Player 4", 1, cor_preto),
+                   ]
+    text_Vida = fonte_media.render("Vida", 1, cor_preto)
+    text_Energia = fonte_media.render("Energia", 1, cor_preto)
+    text_Recursos = fonte_media.render("Recursos", 1, cor_preto)
+    text_Guerreiros = fonte_pequena.render("Qtd Guerreiros:",1, cor_preto)
+    text_Arqueiros = fonte_pequena.render("Qtd Arqueiros:",1, cor_preto)
+    text_Explorador = fonte_pequena.render("Qtd Exploradores:",1, cor_preto)
+    text_Construtor = fonte_pequena.render("Qtd Construtores:",1, cor_preto)
+    text_Curador = fonte_pequena.render("Qtd Curadores:",1, cor_preto)
+    text_Transporte = fonte_pequena.render("Qtd Transportes:",1, cor_preto)
+    text_Acampamento = fonte_pequena.render("Qtd Acampamentos:",1, cor_preto)
+    text_Fortificacao = fonte_pequena.render("Qtd Cartas de Fortificação:",1, cor_preto)
+    
+
+    #criando mapa
+    matriz =    [#1 2 3 4 5 6 7 8 910 1 2 3 4 5 6 7 8 920 1 2 3 4 5 6 7 8 930 1 2 3 4 5 6 7 8 940 1 2 3 4 5 6 7 8 9 50
+                 [3,9,9,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,3,9,9],#1
+                 [9,9,9,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,9,9,9],#2
+                 [9,9,9,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,9,9,9],#3
+                 [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],#4
+                 [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1],#5
+                 [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],#6
+                 [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,0,0,0,0,0,0,0,0,0,0],#7
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1],#8
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#9
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#10
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#11
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#12
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#13
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#14
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#15
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#16
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#17
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#18
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#19
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#20
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#21
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#22
+                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],#23
+                 [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],#24
+                 [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],#25
+                 [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],#26
+                 [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],#27
+                 [3,9,9,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,3,9,9],#28
+                 [9,9,9,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,2,0,0,0,0,9,9,9],#29
+                 [9,9,9,0,0,0,0,0,0,0,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,9,9,9],#30
+                ]
+
+
+    #instanciando Variaveis e Classes
+    matriz[0][0] = "cas1"
+    matriz[0][47] = "cas2"
+    matriz[27][0] = "cas3"
+    matriz[27][47] = "cas4"
+    Players = [Player(0,0,[3,3],10),Player(0,47,[3,46],10), Player(27,0,[26,3],10), Player(27,47,[26,46],10)]
+
+    #testes ...
+    guerreiro =  Guerreiro(21,13)
+    matriz[21][13] = "g0"
+    Players[0].ListGuerreiro.append(guerreiro)
+    arqueiro = Arqueiro(22,13)
+    matriz[22][13] = "a1"
+    Players[1].ListArqueiro.append(arqueiro)
+    
+
+
+    sair = False
+
+    #tempo
+    tempo = pygame.time.get_ticks()//1000
+    limTempo = 1
+    
+    num_play = 0
+    #teste para o sprite
+    i = 0
+    temp = tempo
+    def adicionar(i):
+        if i == 4:
+            return 0
+        else :
+            return i+1
+
+# ------------------------------------ COMEÇA O WHILE DO JOGO ------------
+    
+    while sair == False :
+        tempo = pygame.time.get_ticks()//1000
+        
+        passarTempo(tempo, limTempo, Players, num_play)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sair = True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos_mouse = pygame.mouse.get_pos()
+                if pos_mouse[1] < 600:
+                    if pos_mouse[0] < 1000:
+                        Personagem = clicarNoPersonagem(pos_mouse,matriz,Players,num_play)
+                        if Personagem != False:
+                            mostrarMovimento(Personagem.pos_y,Personagem.pos_x,Personagem.move)
+                            mover(Personagem,matriz)
+                if 620 <= pos_mouse[1] <= 720 :
+                    Players[num_play].pos_respwn(matriz)
+                    if 20 <= pos_mouse[0] <= 100:
+                        x,y = Players[num_play].respwn
+                        if matriz[x][y] == 0:
+                            Players[num_play].construir("Guerreiro")
+                            matriz[x][y] = "g" + str(num_play)
+                    if 120 <= pos_mouse[0] <= 200:
+                        x,y = Players[num_play].respwn
+                        if matriz[x][y] == 0:
+                            Players[num_play].construir("Arqueiro")
+                            matriz[x][y] = "a" + str(num_play)
+                    if 220 <= pos_mouse[0] <= 300:
+                        x,y = Players[num_play].respwn
+                        if matriz[x][y] == 0:
+                            Players[num_play].construir("Explorador")
+                            matriz[x][y] = "e" + str(num_play)
+                    if 320 <= pos_mouse[0] <= 400:
+                        x,y = Players[num_play].respwn
+                        if matriz[x][y] == 0:
+                            Players[num_play].construir("Construtor")
+                            matriz[x][y] = "c" + str(num_play)
+                    if 420 <= pos_mouse[0] <= 500:
+                        x,y = Players[num_play].respwn
+                        if matriz[x][y] == 0:
+                            Players[num_play].construir("Curador")
+                            matriz[x][y] = "s" + str(num_play)
+                    if 520 <= pos_mouse[0] <= 600:
+                        x,y = Players[num_play].respwn
+                        if matriz[x][y] == 0:
+                            Players[num_play].construir("Transporte")
+                            matriz[x][y] = "t" + str(num_play)
+                    if 620 <= pos_mouse[0] <= 700:
+                        Players[num_play].construir("Acampamento")
+                    if 720 <= pos_mouse[0] <= 800:
+                        Players[num_play].construir("Fortificacao")
+                        
+
+
+        #posicionando Superficies e cores
+        tela.fill((255,255,255))
+        vidaBranca_sup.fill((255,255,255))
+        tela.blit(chao_sup,[0,0])
+        tela.blit(barraVida_sup,[1013,210])
+        
+        vida = Players[num_play].castelo.vida
+        if vida < 0:
+            vida = 0
+        barraVerde = pygame.Surface((25*(vida/100),20))
+        barraVerde.fill(cor_verde)
+        barraVida_sup.blit(vidaBranca_sup,[1,1])
+        barraVida_sup.blit(barraVerde,[1,1])
+
+        #posicioando Cartas
+        testeCard.fill(cor_azul)
+        tela.blit(testeCard,[20,620])
+        tela.blit(testeCard,[120,620])
+        tela.blit(testeCard,[220,620])
+        tela.blit(testeCard,[320,620])
+        tela.blit(testeCard,[420,620])
+        tela.blit(testeCard,[520,620])
+        tela.blit(testeCard,[620,620])
+        tela.blit(testeCard,[720,620])
+
+
+        
+        #definindo numeros da tela
+        text_Tempo = fonte_grande.render(str(30-(tempo - limTempo)), 1, cor_preto)
+        text_qtdGuerreiros = fonte_pequena.render(str(len(Players[num_play].ListGuerreiro)),1,cor_preto)
+        text_qtdArqueiros = fonte_pequena.render(str(len(Players[num_play].ListArqueiro)),1,cor_preto)
+        text_qtdExplorador = fonte_pequena.render(str(len(Players[num_play].ListExplorador)),1,cor_preto)
+        text_qtdConstrutor = fonte_pequena.render(str(len(Players[num_play].ListConstrutor)),1,cor_preto)
+        text_qtdCurador = fonte_pequena.render(str(len(Players[num_play].ListCurador)),1,cor_preto)
+        text_qtdTransporte = fonte_pequena.render(str(len(Players[num_play].ListTransporte)),1,cor_preto)
+        text_qtdAcampamento = fonte_pequena.render(str(len(Players[num_play].ListAcampamento)),1,cor_preto)
+        text_qtdFortificacao = fonte_pequena.render(str(Players[num_play].ListFortificacao),1,cor_preto)
+        
+
+
+        #Posicioanando Textos na tela
+        tela.blit(text_NomeJogo,(1001,10))
+        tela.blit(text_Tempo,(1100,80))
+        tela.blit(text_Player[num_play],(1010,140))
+        tela.blit(text_Vida,(1010, 190))
+        tela.blit(text_Energia,(1010,240))
+        tela.blit(text_Recursos,(1010,260))
+        tela.blit(text_Guerreiros,(1010,290))
+        tela.blit(text_qtdGuerreiros,(1250,290))
+        tela.blit(text_Arqueiros,(1010,305))
+        tela.blit(text_qtdArqueiros,(1250,305))
+        tela.blit(text_Explorador,(1010,320))
+        tela.blit(text_qtdExplorador,(1250,320))
+        tela.blit(text_Construtor,(1010,335))
+        tela.blit(text_qtdConstrutor,(1250,335))
+        tela.blit(text_Curador,(1010,350))
+        tela.blit(text_qtdCurador,(1250,350))
+        tela.blit(text_Transporte,(1010,365))
+        tela.blit(text_qtdTransporte,(1250,365))
+        tela.blit(text_Acampamento,(1010,380))
+        tela.blit(text_qtdAcampamento,(1250,380))
+        tela.blit(text_Fortificacao,(1010,395))
+        tela.blit(text_qtdFortificacao,(1250,395))
+        
+        
+        chao_sup.blit(chao_image,(0,0,1000,600))
+        for x in range(0,len(matriz)):
+            for y in range(0,len(matriz[x])):
+                if matriz[x][y] != 9:
+                    if matriz[x][y] == 1:
+                        chao_sup.blit(arvore1_image,(y*20,x*20,20,20))
+                    if matriz[x][y] == 2:
+                        chao_sup.blit(arvore2_image,(y*20,(x-1)*20,20,40))
+                    #if matriz[x][y] == 3:
+                     #   chao_sup.blit(testeArvore_img,(y*20,x*20),(sptArvore[i]))
+                    if matriz[x][y] == "cas1":
+                        chao_sup.blit(castelo1_image,(y*20,x*20,60,60))
+                    if matriz[x][y] == "cas2":
+                        chao_sup.blit(castelo2_image,(y*20,x*20,60,60))
+                    if matriz[x][y] == "cas3":
+                        chao_sup.blit(castelo3_image,(y*20,x*20,60,60))
+                    if matriz[x][y] == "cas4":
+                        chao_sup.blit(castelo4_image,(y*20,x*20,60,60))
+                    if matriz[x][y] == "casdestroy":
+                        chao_sup.blit(casteloDestroy_image,(y*20,x*20,60,60))
+                    if matriz[x][y] == "g0" or matriz[x][y] == "g1" or matriz[x][y] == "g2" or matriz[x][y] == "g3":    #Guerreiro
+                        chao_sup.blit(guerreiro_image,(y*20,x*20,20,20))
+                    if matriz[x][y] == "a0" or matriz[x][y] == "a1" or matriz[x][y] == "a2" or matriz[x][y] == "a3":    #Arqueiro
+                        chao_sup.blit(guerreiro_image,(y*20,x*20,20,20))
+                    if matriz[x][y] == "e0" or matriz[x][y] == "e1" or matriz[x][y] == "e2" or matriz[x][y] == "e3":    #Explorador
+                        chao_sup.blit(guerreiro_image,(y*20,x*20,20,20))
+                    if matriz[x][y] == "c0" or matriz[x][y] == "c1" or matriz[x][y] == "c2" or matriz[x][y] == "c3":    #Construtor
+                        chao_sup.blit(guerreiro_image,(y*20,x*20,20,20))
+                    if matriz[x][y] == "s0" or matriz[x][y] == "s1" or matriz[x][y] == "s2" or matriz[x][y] == "s3":    #Curador(Suporte)
+                        chao_sup.blit(guerreiro_image,(y*20,x*20,20,20))
+                    if matriz[x][y] == "t0" or matriz[x][y] == "t1" or matriz[x][y] == "t2" or matriz[x][y] == "t3":    #Transporte
+                        chao_sup.blit(guerreiro_image,(y*20,x*20,20,20))
+                    if matriz[x][y] == "p0" or matriz[x][y] == "p1" or matriz[x][y] == "p2" or matriz[x][y] == "p3":    #Acampamento
+                        chao_sup.blit(guerreiro_image,(y*20,x*20,20,20))
+
+        
+        pygame.display.update()
+        relogio.tick(30)
+
+    pygame.quit()    
+
+main()
+
+

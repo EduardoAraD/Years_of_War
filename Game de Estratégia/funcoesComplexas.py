@@ -1,0 +1,185 @@
+from Player import *
+from interface import *
+from Personagem import *
+import pygame
+
+
+def transformPosicao(x,y):
+    pos_x = x//20
+    pos_y = y//20
+    return pos_x,pos_y
+
+def mover(Personagem,carta,matriz,matrizRec,tela,vidaBranca_sup,chao_sup,barraVida_sup,cor_verde,vida,vidaMax,Players,num_play,limTempo,acampamentoCard,fortCard,fonteGd,fonteMd,fontePq,text_Info,text_Player,text_Vida,text_Castelo,text_Recursos,slogan_img,vida_img,escudo_img,madeira_img,minerio_img,chao_image,arvore1_image,arvore2_image,mina_img,castelo1_image,castelo2_image,castelo3_image,castelo4_image,casteloDestroy_image,madeiraMap,minerioMap,guerreiro_image,arqueiro_image,explorador_image,construtor_image,curador_image,transporte_image,acampamento_image):
+    pygame.init()
+    sair = False
+    blocoBranco = pygame.Surface((280,720))
+    blocoBranco.fill((255,255,255))
+    cor = (0,0,0)
+    while sair == False:
+        tempo = pygame.time.get_ticks()//1000
+        limTempo, fim = passarTempoM(tempo, limTempo)
+        if fim == True:
+            sair = True
+        if carta != "Acampamento":
+            mostrarMovimento(Personagem.pos_y,Personagem.pos_x,Personagem.move,chao_sup)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:   
+                sair = True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos_mouse = pygame.mouse.get_pos()
+                x,y = transformPosicao(pos_mouse[1],pos_mouse[0])
+                if carta == "Transporte":
+                    if Personagem.podeMover > 0:
+                        Personagem.movimentar(x,y,matriz,matrizRec)
+                elif carta == "Acampamento":
+                    if 620 <= pos_mouse[1] < 720 and 20 <= pos_mouse[0] < 100: #Carta de Fortificacao
+                        Players[num_play].fortificarCarta(carta,Personagem.pos_x,Personagem.pos_y)
+                elif carta == "Construtor":
+                    if 620 <= pos_mouse[1] < 720 and 20 <= pos_mouse[0] < 100: #Carta de Acampamento
+                        cons = Players[num_play].construirAcampamento(Personagem)
+                        if cons :
+                            matriz[Personagem.pos_x][Personagem.pos_y] = "p" + str(num_play)
+                    else:
+                        if Personagem.podeMover > 0:
+                            Personagem.movimentar(x,y,matriz)
+                else:
+                    if Personagem.podeMover > 0:
+                        Personagem.movimentar(x,y,matriz)
+                sair = True
+
+        
+        posSuperficie(tela, vidaBranca_sup,chao_sup,barraVida_sup,cor_verde,vida,vidaMax)
+
+        mapaDes(matriz,matrizRec,chao_sup,chao_image,arvore1_image,arvore2_image,mina_img,castelo1_image,castelo2_image,castelo3_image,castelo4_image,casteloDestroy_image,madeiraMap,minerioMap,guerreiro_image,arqueiro_image,explorador_image,construtor_image,curador_image,transporte_image,acampamento_image)
+ 
+
+        posImagens(tela,slogan_img,vida_img,escudo_img,madeira_img,minerio_img)
+
+        textosFixos(tela,tempo,limTempo,cor,Players,num_play,fonteGd,fontePq,text_Info,text_Player,text_Vida,text_Castelo,text_Recursos)
+        
+        Personagem.atributoInter(tela,fonteMd,fontePq)
+        if carta == "Construtor" :
+            mad = fontePq.render("25",1,(0,0,0))
+            mini = fontePq.render("5",1,(0,0,0))
+            tela.blit(acampamentoCard,[20,620])
+            tela.blit(madeira_img,[105,640])
+            tela.blit(mad,[130,640])
+            tela.blit(minerio_img,[105,660])
+            tela.blit(mini,[130,660])
+        elif carta == "Acampamento":
+            mad = fontePq.render("20",1,(0,0,0))
+            mini = fontePq.render("10",1,(0,0,0))
+            tela.blit(fortCard,[20,620])
+            tela.blit(madeira_img,[105,640])
+            tela.blit(mad,[130,640])
+            tela.blit(minerio_img,[105,660])
+            tela.blit(mini,[130,660])
+
+        pygame.display.update()
+
+def trocarJogador(x):
+    if x == 3 :
+        x = 0
+    else:
+        x += 1
+    return x
+    
+def clicarNoPersonagem(pos,matriz,Players,num_play):
+    x,y = transformPosicao(pos[1],pos[0])
+    per = matriz[x][y]
+    if per == "g0" or per == "g1" or per == "g2" or per == "g3":
+        for i in range(0,len(Players[num_play].ListGuerreiro)):
+            if x == Players[num_play].ListGuerreiro[i].pos_x :
+                if y == Players[num_play].ListGuerreiro[i].pos_y:
+                    return Players[num_play].ListGuerreiro[i] , "Guerreiro"
+    if per == "a0" or per == "a1" or per == "a2" or per == "a3":
+        for i in range(0,len(Players[num_play].ListArqueiro)):
+            if x == Players[num_play].ListArqueiro[i].pos_x :
+                if y == Players[num_play].ListArqueiro[i].pos_y:
+                    return Players[num_play].ListArqueiro[i], "Arqueiro"
+    if per == "e0" or per == "e1" or per == "e2" or per == "e3":
+        for i in range(0,len(Players[num_play].ListExplorador)):
+            if x == Players[num_play].ListExplorador[i].pos_x :
+                if y == Players[num_play].ListExplorador[i].pos_y:
+                    return Players[num_play].ListExplorador[i], "Explorador"
+    if per == "c0" or per == "c1" or per == "c2" or per == "c3":
+        for i in range(0,len(Players[num_play].ListConstrutor)):
+            if x == Players[num_play].ListConstrutor[i].pos_x :
+                if y == Players[num_play].ListConstrutor[i].pos_y:
+                    return Players[num_play].ListConstrutor[i], "Construtor"
+    if per == "s0" or per == "s1" or per == "s2" or per == "s3":
+        for i in range(0,len(Players[num_play].ListCurador)):
+            if x == Players[num_play].ListCurador[i].pos_x:
+                if y == Players[num_play].ListCurador[i].pos_y:
+                    return Players[num_play].ListCurador[i], "Curador"
+    if per == "t0" or per == "t1" or per == "t2" or per == "t3":
+        for i in range(0,len(Players[num_play].ListTransporte)):
+            if x == Players[num_play].ListTransporte[i].pos_x:
+                if y == Players[num_play].ListTransporte[i].pos_y:
+                    return Players[num_play].ListTransporte[i], "Transporte"
+    if per == "p0" or per == "p1" or per == "p2" or per == "p3" :
+        for i in range(0,len(Players[num_play].ListAcampamento)):
+            if x == Players[num_play].ListAcampamento[i].pos_x:
+                if y == Players[num_play].ListAcampamento[i].pos_y:
+                    return Players[num_play].ListAcampamento[i], "Acampamento"
+    return False, False
+
+def identificarCastelo(x,y):
+        if x >= 0 and x <= 2:
+            if y >=0 and y <= 2:
+                return 0 #castelo 1
+            else:
+                return 1 #castelo 2
+        else :
+            if y >= 0 and y <= 2:
+                return 2 #castelo 3
+            else :
+                return 3 #castelo 4
+
+def quemRecebeDano(matriz, x, y, Players,amigo,dano,podeAtacarCastelo):
+    if matriz[x][y] == "g0" or matriz[x][y] == "g1" or matriz[x][y] == "g2" or matriz[x][y] == "g3":
+        num = int(matriz[x][y][1])
+        if num != amigo:
+            Players[num].damage(matriz,"Guerreiro",x,y,dano)
+        return podeAtacarCastelo
+    if matriz[x][y] == "a0" or matriz[x][y] == "a1" or matriz[x][y] == "a2" or matriz[x][y] == "a3":
+        num = int(matriz[x][y][1])
+        if num != amigo:
+            Players[num].damage(matriz,"Arqueiro",x,y,dano)
+        return podeAtacarCastelo
+    if matriz[x][y] == "e0" or matriz[x][y] == "e1" or matriz[x][y] == "e2" or matriz[x][y] == "e3":
+        num = int(matriz[x][y][1])
+        if num != amigo:
+            Players[num].damage(matriz,"Explorador",x,y,dano)
+        return podeAtacarCastelo
+    if matriz[x][y] == "c0" or matriz[x][y] == "c1" or matriz[x][y] == "c2" or matriz[x][y] == "c3":
+        num = int(matriz[x][y][1])
+        if num != amigo:
+            Players[num].damage(matriz,"Construtor",x,y,dano)
+        return podeAtacarCastelo
+    if matriz[x][y] == "s0" or matriz[x][y] == "s1" or matriz[x][y] == "s2" or matriz[x][y] == "s3":
+        num = int(matriz[x][y][1])
+        if num != amigo:
+            Players[num].damage(matriz,"Curador",x,y,dano)
+        return podeAtacarCastelo
+    if matriz[x][y] == "t0" or matriz[x][y] == "t1" or matriz[x][y] == "t2" or matriz[x][y] == "t3":
+        num = int(matriz[x][y][1])
+        if num != amigo:
+            Players[num].damage(matriz,"Transporte",x,y,dano)
+        return podeAtacarCastelo
+    if matriz[x][y] == "p0" or matriz[x][y] == "p1" or matriz[x][y] == "p2" or matriz[x][y] == "p3":
+        num = int(matriz[x][y][1])
+        if num != amigo:
+            Players[num].damage(matriz,"Acampamento",x,y,dano)
+        return podeAtacarCastelo
+    if matriz[x][y] == "cas1" or matriz[x][y] == "cas2" or matriz[x][y] == "cas3" or matriz[x][y] == "cas4" or matriz[x][y] == 9 :
+        if podeAtacarCastelo == False:
+            return False
+        num = identificarCastelo(x,y)
+        if amigo != num :
+            morreu = Players[num].castelo.receberDano(dano)
+            if morreu == True:
+                Players[num].derrota(matriz)
+            return False
+    return podeAtacarCastelo
+

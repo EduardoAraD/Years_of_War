@@ -1,0 +1,67 @@
+import pygame
+from funcoesComplexas import *
+
+class Acampamento:
+    def __init__(self, pos_x, pos_y):
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.vidaMax = 400
+        self.vida = 400
+        self.defesa = 0
+        self.expansao = 0
+        
+    def receberDano(self,dano):
+        self.vida = self.vida - (dano * ((100-self.defesa)/100))
+        if self.vida <= 0 :
+            self.vida = 0
+            return True
+        return False
+            
+    def receberCura(self, cura):
+        self.vida += cura
+        if self.vida > self.vidaMax :
+            self.vida = self.vidaMax
+
+    def fortificar(self):
+        if self.defesa < 80:
+            self.defesa += 20
+    
+    def defExpansao(self,pos_x,pos_y):
+        def positivo(x):
+            if x < 0:
+                return - x
+            return x
+        def pos(pos_x,pos_y):
+            x = identificarCastelo(pos_x,pos_y)
+        a = positivo(pos_x - self.pos_x)
+        b = positivo(pos_y - self.pos_y)
+        if a == 0:
+            a = 1
+        if b == 0:
+            b = 1
+        self.expansao = a*b
+        return self.expansao
+
+    def atributoInter(self,tela,fonte,fonte2):
+
+        cor = (0,0,0)
+        text_Acampamento = fonte.render("Acampamento",1,cor)
+        text_Vida = fonte2.render("Vida",1,cor)
+        text_Defesa = fonte2.render("Defesa",1,cor)
+        text_qtdDefesa = fonte2.render(str(self.defesa),1,cor)
+
+        tela.blit(text_Acampamento,(1010,350))
+        tela.blit(text_Vida,(1010,380))
+        tela.blit(text_Defesa,(1010,400))
+        tela.blit(text_qtdDefesa,(1100,400))
+
+        barraVida = pygame.Surface((152,16))
+        vidaBranca = pygame.Surface((150,14))
+        vidaBranca.fill((255,255,255))
+        vida = self.vida/self.vidaMax
+        vidaVerde = pygame.Surface((150*vida,14))
+        vidaVerde.fill((10,235,10))
+
+        tela.blit(barraVida,[1050,380])
+        tela.blit(vidaBranca,[1051,381])
+        tela.blit(vidaVerde,[1051,381])
